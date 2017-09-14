@@ -14,14 +14,14 @@ defmodule ThreeScraper do
 
 
   def init(_args) do
-    Process.send_after(self(), :work, 10 * 1000)
+    Process.send_after(self(), :work, 10 * 1000) # ten seconds
     {:ok, nil}
   end
 
   def handle_info(:work, state) do
     sims = SIM.get_info() |> Enum.map(&Map.from_struct/1)
     Repo.insert_all("sim_logs", sims)
-    Process.send_after(self(), :work, 10 * 1000)
+    Process.send_after(self(), :work, @period)
     {:noreply, state}
   end
 
