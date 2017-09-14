@@ -7,7 +7,8 @@ defmodule ThreeScraper.SIM do
     :number,
     :addon,
     :allowance,
-    :volume_used
+    :volume_used,
+    :datetime
   ]
 
   def get_info do
@@ -29,16 +30,20 @@ defmodule ThreeScraper.SIM do
     %{body: body} = retry(fn ->
       API.post("/NASApp/MyAccount/PostpaidManageDataUsageServlet.htm", {:form, post_form})
     end)
-    html = Floki.parse(body)
-    internet_usage_table = Floki.find(html, ".standardMyAccTable")
-    [_header, internet_usage_row | _rest] = Floki.find(internet_usage_table, "tr")
-    [
-      {"td", _, [addon]},
-      {"td", _, [allowance]},
-      {"td", _, [volume_used]}
-    ] = Floki.find(internet_usage_row, "td")
 
-    %{sim | addon: addon, allowance: allowance, volume_used: volume_used}
+    [_header, internet_usage_row | _rest] =
+      body
+      |> Floki.parse()
+      |> Floki.find(".standardMyAccTable")
+      |> Floki.find("tr")
+
+    [{"td", _, [addon]}, {"td", _, [allowance]}, {"td", _, [volume_used]}] =
+      Floki.find(internet_usage_row, "td")
+
+    %{sim | addon: addon,
+            allowance: allowance,
+            volume_used: volume_used,
+            datetime: NaiveDateTime.utc_now()}
   end
 
   def extract_sims(body) do

@@ -57,7 +57,7 @@ defmodule ThreeScraper.Cookie do
   end
 
   def get_headers_retry do
-    case HTTPoison.post(@url, {:form, login_form()}) do
+    case HTTPoison.post(@url, {:form, login_form()}, hackney: [recv_timeout: 30_000]) do
       {:ok, %HTTPoison.Response{headers: headers}} ->
         headers
       error ->
