@@ -21,7 +21,7 @@ defmodule ThreeScraper.SIM do
   end
 
   def get_sims do
-    %{body: body} = retry(fn -> API.get("/NASApp/MyAccount/PostpaidManageDataUsageServlet.htm") end)
+    %{body: body} = retry(fn -> API.get("/NASApp/MyAccount/PostpaidManageDataUsageServlet.htm") end, , 10)
     extract_sims(body)
   end
 
@@ -29,7 +29,7 @@ defmodule ThreeScraper.SIM do
     post_form = [{"ctn", sim_number}]
     %{body: body} = retry(fn ->
       API.post("/NASApp/MyAccount/PostpaidManageDataUsageServlet.htm", {:form, post_form})
-    end)
+    end, 10)
 
     [_header, internet_usage_row | _rest] =
       body
@@ -65,16 +65,19 @@ defmodule ThreeScraper.SIM do
     |> String.trim()
   end
 
-  def retry(fun) do
+  def retry(_fun, attempts_left) when attempts_left <= 0 do
+    raise("retry failed")
+  end
+  def retry(fun, attempts_left) do
     case fun.() do
       {:ok, %{status_code: 200} = resp} -> resp
       {:ok, %{status_code: 302}} ->
         Logger.error("cookie expired")
         Cookie.update()
-        retry(fun)
+        retry(fun, attempts_left - 1)
       error ->
         Logger.error([to_string(__MODULE__), ?\n, inspect(error)])
-        retry(fun)
+        retry(fun, attempts_left - 1)
     end
   end
 end
