@@ -11,6 +11,6 @@ defmodule ThreeScraper.Repo.Migrations.AddSimLogs do
       add :datetime, :naive_datetime
     end
 
-    # maybe add some indeces
+    # maybe add some indices
   end
 end
