@@ -21,7 +21,7 @@ defmodule ThreeScraper.SIM do
   end
 
   def get_sims do
-    %{body: body} = retry(fn -> API.get("/NASApp/MyAccount/PostpaidManageDataUsageServlet.htm") end, , 10)
+    %{body: body} = retry(fn -> API.get("/NASApp/MyAccount/PostpaidManageDataUsageServlet.htm") end, 10)
     extract_sims(body)
   end
 
